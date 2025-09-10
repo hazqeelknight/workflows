@@ -3,6 +3,9 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.db import transaction
+from django.db.models import F, ExpressionWrapper, DurationField
+from django.db.models.functions import Extract
+from django.db import models
 from django.utils import timezone
 from .models import Workflow, WorkflowAction, WorkflowExecution, WorkflowTemplate
 from .serializers import (
@@ -392,13 +395,21 @@ def workflow_performance_stats(request):
     recent_executions = WorkflowExecution.objects.filter(
         workflow__organizer=request.user,
         created_at__gte=thirty_days_ago
+    ).annotate(
+        duration_seconds=ExpressionWrapper(
+            Extract(F('completed_at'), 'epoch') - Extract(F('started_at'), 'epoch'),
+            output_field=models.FloatField()
+        )
+    ).filter(
+        started_at__isnull=False,
+        completed_at__isnull=False
     )
     
     execution_stats = recent_executions.aggregate(
         total_executions=Count('id'),
         successful_executions=Count('id', filter=Q(status='completed')),
         failed_executions=Count('id', filter=Q(status='failed')),
-        avg_execution_time=Avg('completed_at') - Avg('started_at')
+        avg_execution_time_seconds=Avg('duration_seconds')
     )
     
     # Calculate success rate
