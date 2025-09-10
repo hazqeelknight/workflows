@@ -431,7 +431,7 @@ const WorkflowBuilder: React.FC = () => {
             setSelectedAction(null);
           }}
           onSubmit={handleActionSubmit}
-          action={selectedAction}
+          action={selectedAction || undefined}
           workflowId={currentWorkflow.id}
         />
       )}
