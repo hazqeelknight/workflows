@@ -1,18 +1,335 @@
 import React from 'react';
-import { Typography } from '@mui/material';
-import { PageHeader } from '@/components/core';
+import {
+  Grid,
+  Card,
+  CardContent,
+  Typography,
+  Box,
+  Chip,
+  LinearProgress,
+  Alert,
+} from '@mui/material';
+import {
+  AccountTree,
+  PlayArrow,
+  CheckCircle,
+  Error,
+  TrendingUp,
+  Speed,
+} from '@mui/icons-material';
+import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { PageHeader, LoadingSpinner, Button } from '@/components/core';
+import { useWorkflows, useWorkflowPerformanceStats } from '../hooks/useWorkflowsApi';
 
 const WorkflowsOverview: React.FC = () => {
+  const navigate = useNavigate();
+  const { data: workflows = [], isLoading: workflowsLoading } = useWorkflows();
+  const { data: stats, isLoading: statsLoading } = useWorkflowPerformanceStats();
+
+  if (workflowsLoading || statsLoading) {
+    return <LoadingSpinner message="Loading workflows overview..." />;
+  }
+
+  const quickStats = [
+    {
+      title: 'Total Workflows',
+      value: stats?.total_workflows || 0,
+      icon: AccountTree,
+      color: 'primary.main',
+      description: `${stats?.active_workflows || 0} active`,
+    },
+    {
+      title: 'Executions (30 days)',
+      value: stats?.execution_stats_30_days.total_executions || 0,
+      icon: PlayArrow,
+      color: 'info.main',
+      description: `${stats?.execution_stats_30_days.success_rate || 0}% success rate`,
+    },
+    {
+      title: 'Successful Actions',
+      value: stats?.execution_stats_30_days.successful_executions || 0,
+      icon: CheckCircle,
+      color: 'success.main',
+      description: 'Last 30 days',
+    },
+    {
+      title: 'Failed Actions',
+      value: stats?.execution_stats_30_days.failed_executions || 0,
+      icon: Error,
+      color: 'error.main',
+      description: 'Needs attention',
+    },
+  ];
+
   return (
     <>
       <PageHeader
         title="Workflows Overview"
-        subtitle="Automate your scheduling processes"
+        subtitle="Automate your scheduling processes with intelligent workflows"
+        actions={
+          <Box display="flex" gap={1}>
+            <Button
+              variant="outlined"
+              onClick={() => navigate('/workflows/templates')}
+            >
+              Browse Templates
+            </Button>
+            <Button
+              variant="contained"
+              onClick={() => navigate('/workflows/list')}
+            >
+              Manage Workflows
+            </Button>
+          </Box>
+        }
       />
-      
-      <Typography variant="body1">
-        Workflows module content will be implemented here by the assigned developer.
-      </Typography>
+
+      {/* Quick Stats */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        {quickStats.map((stat, index) => (
+          <Grid item xs={12} sm={6} md={3} key={stat.title}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.1 }}
+            >
+              <Card>
+                <CardContent>
+                  <Box display="flex" alignItems="center" justifyContent="space-between">
+                    <Box>
+                      <Typography color="text.secondary" gutterBottom variant="overline">
+                        {stat.title}
+                      </Typography>
+                      <Typography variant="h4" component="div" sx={{ fontWeight: 700 }}>
+                        {stat.value.toLocaleString()}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {stat.description}
+                      </Typography>
+                    </Box>
+                    <Box
+                      sx={{
+                        backgroundColor: stat.color,
+                        borderRadius: 2,
+                        p: 1.5,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <stat.icon sx={{ color: 'white', fontSize: 24 }} />
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </Grid>
+        ))}
+      </Grid>
+
+      {/* Performance Overview */}
+      {stats && (
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Grid item xs={12} md={6}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  <TrendingUp sx={{ mr: 1, verticalAlign: 'middle' }} />
+                  Top Performing Workflows
+                </Typography>
+                
+                {stats.top_performing_workflows.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary">
+                    No workflow executions in the last 30 days
+                  </Typography>
+                ) : (
+                  <Box>
+                    {stats.top_performing_workflows.slice(0, 5).map((workflow, index) => (
+                      <Box key={workflow.workflow_id} sx={{ mb: 2 }}>
+                        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                            {workflow.workflow_name}
+                          </Typography>
+                          <Chip
+                            label={`${workflow.success_rate}%`}
+                            color={workflow.success_rate >= 90 ? 'success' : workflow.success_rate >= 70 ? 'warning' : 'error'}
+                            size="small"
+                          />
+                        </Box>
+                        <LinearProgress
+                          variant="determinate"
+                          value={workflow.success_rate}
+                          color={workflow.success_rate >= 90 ? 'success' : workflow.success_rate >= 70 ? 'warning' : 'error'}
+                          sx={{ height: 6, borderRadius: 3 }}
+                        />
+                        <Typography variant="caption" color="text.secondary">
+                          {workflow.successful_executions}/{workflow.total_executions} executions
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  <Speed sx={{ mr: 1, verticalAlign: 'middle' }} />
+                  Problematic Workflows
+                </Typography>
+                
+                {stats.problematic_workflows.length === 0 ? (
+                  <Alert severity="success">
+                    <Typography variant="body2">
+                      No problematic workflows detected. Great job!
+                    </Typography>
+                  </Alert>
+                ) : (
+                  <Box>
+                    {stats.problematic_workflows.slice(0, 5).map((workflow) => (
+                      <Box key={workflow.workflow_id} sx={{ mb: 2 }}>
+                        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                            {workflow.workflow_name}
+                          </Typography>
+                          <Chip
+                            label={`${workflow.success_rate}%`}
+                            color="error"
+                            size="small"
+                          />
+                        </Box>
+                        <LinearProgress
+                          variant="determinate"
+                          value={workflow.success_rate}
+                          color="error"
+                          sx={{ height: 6, borderRadius: 3 }}
+                        />
+                        <Typography variant="caption" color="text.secondary">
+                          {workflow.successful_executions}/{workflow.total_executions} executions
+                        </Typography>
+                      </Box>
+                    ))}
+                    
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => navigate('/workflows/list')}
+                      sx={{ mt: 2 }}
+                    >
+                      Review Workflows
+                    </Button>
+                  </Box>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      )}
+
+      {/* Recent Activity */}
+      <Card>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            Recent Workflows
+          </Typography>
+          
+          {workflows.length === 0 ? (
+            <Box textAlign="center" py={4}>
+              <AccountTree sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                No Workflows Yet
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Create your first workflow to automate your scheduling processes
+              </Typography>
+              <Box display="flex" gap={2} justifyContent="center">
+                <Button
+                  variant="outlined"
+                  onClick={() => navigate('/workflows/templates')}
+                >
+                  Browse Templates
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={() => navigate('/workflows/builder')}
+                >
+                  Create Workflow
+                </Button>
+              </Box>
+            </Box>
+          ) : (
+            <Box>
+              {workflows.slice(0, 5).map((workflow, index) => (
+                <motion.div
+                  key={workflow.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                >
+                  <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    py={2}
+                    sx={{
+                      borderBottom: index < workflows.length - 1 ? '1px solid' : 'none',
+                      borderColor: 'divider',
+                    }}
+                  >
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                        {workflow.name}
+                      </Typography>
+                      <Box display="flex" alignItems="center" gap={1} mt={0.5}>
+                        <Chip
+                          label={workflow.trigger_display}
+                          size="small"
+                          variant="outlined"
+                        />
+                        <Chip
+                          label={workflow.is_active ? 'Active' : 'Inactive'}
+                          color={workflow.is_active ? 'success' : 'default'}
+                          size="small"
+                        />
+                        <Typography variant="caption" color="text.secondary">
+                          {workflow.success_rate}% success rate
+                        </Typography>
+                      </Box>
+                    </Box>
+                    
+                    <Box textAlign="right">
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                        {workflow.execution_stats.total_executions} executions
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {workflow.execution_stats.last_executed_at
+                          ? `Last: ${new Date(workflow.execution_stats.last_executed_at).toLocaleDateString()}`
+                          : 'Never executed'
+                        }
+                      </Typography>
+                    </Box>
+                  </Box>
+                </motion.div>
+              ))}
+              
+              {workflows.length > 5 && (
+                <Box textAlign="center" mt={2}>
+                  <Button
+                    variant="outlined"
+                    onClick={() => navigate('/workflows/list')}
+                  >
+                    View All Workflows ({workflows.length})
+                  </Button>
+                </Box>
+              )}
+            </Box>
+          )}
+        </CardContent>
+      </Card>
     </>
   );
 };
