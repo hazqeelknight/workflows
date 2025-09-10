@@ -8,3 +8,6 @@ export { WorkflowTestDialog } from './WorkflowTestDialog';
 export { WorkflowValidationDialog } from './WorkflowValidationDialog';
 export { WorkflowExecutionDetails } from './WorkflowExecutionDetails';
 export { WorkflowTemplateSelector } from './WorkflowTemplateSelector';
+export { WorkflowExecutionMonitor } from './WorkflowExecutionMonitor';
+export { WorkflowActionsList } from './WorkflowActionsList';
+export { WorkflowStatsCard } from './WorkflowStatsCard';

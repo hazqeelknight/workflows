@@ -21,6 +21,8 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader, LoadingSpinner, Button } from '@/components/core';
 import { useWorkflows, useWorkflowPerformanceStats } from '../hooks/useWorkflowsApi';
+import { WorkflowExecutionMonitor } from '../components/WorkflowExecutionMonitor';
+import { WorkflowStatsCard } from '../components/WorkflowStatsCard';
 
 const WorkflowsOverview: React.FC = () => {
   const navigate = useNavigate();
@@ -230,11 +232,11 @@ const WorkflowsOverview: React.FC = () => {
         </Grid>
       )}
 
-      {/* Recent Activity */}
+      {/* Recent Workflows */}
       <Card>
         <CardContent>
           <Typography variant="h6" gutterBottom>
-            Recent Workflows
+            Your Workflows
           </Typography>
           
           {workflows.length === 0 ? (
@@ -262,74 +264,43 @@ const WorkflowsOverview: React.FC = () => {
               </Box>
             </Box>
           ) : (
-            <Box>
-              {workflows.slice(0, 5).map((workflow, index) => (
-                <motion.div
-                  key={workflow.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.1 }}
-                >
-                  <Box
-                    display="flex"
-                    justifyContent="space-between"
-                    alignItems="center"
-                    py={2}
-                    sx={{
-                      borderBottom: index < workflows.length - 1 ? '1px solid' : 'none',
-                      borderColor: 'divider',
-                    }}
+            <Grid container spacing={2}>
+              {workflows.slice(0, 6).map((workflow, index) => (
+                <Grid item xs={12} md={6} lg={4} key={workflow.id}>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 }}
                   >
-                    <Box>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                        {workflow.name}
-                      </Typography>
-                      <Box display="flex" alignItems="center" gap={1} mt={0.5}>
-                        <Chip
-                          label={workflow.trigger_display}
-                          size="small"
-                          variant="outlined"
-                        />
-                        <Chip
-                          label={workflow.is_active ? 'Active' : 'Inactive'}
-                          color={workflow.is_active ? 'success' : 'default'}
-                          size="small"
-                        />
-                        <Typography variant="caption" color="text.secondary">
-                          {workflow.success_rate}% success rate
-                        </Typography>
-                      </Box>
-                    </Box>
-                    
-                    <Box textAlign="right">
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        {workflow.execution_stats.total_executions} executions
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {workflow.execution_stats.last_executed_at
-                          ? `Last: ${new Date(workflow.execution_stats.last_executed_at).toLocaleDateString()}`
-                          : 'Never executed'
-                        }
-                      </Typography>
-                    </Box>
-                  </Box>
-                </motion.div>
+                    <WorkflowStatsCard
+                      workflow={workflow}
+                      onClick={() => navigate(`/workflows/builder/${workflow.id}`)}
+                    />
+                  </motion.div>
+                </Grid>
               ))}
+            </Grid>
               
-              {workflows.length > 5 && (
+              {workflows.length > 6 && (
                 <Box textAlign="center" mt={2}>
                   <Button
                     variant="outlined"
                     onClick={() => navigate('/workflows/list')}
                   >
-                    View All Workflows ({workflows.length})
+                    View All {workflows.length} Workflows
                   </Button>
                 </Box>
               )}
-            </Box>
           )}
         </CardContent>
       </Card>
+
+      {/* Recent Executions Monitor */}
+      {workflows.length > 0 && (
+        <Box sx={{ mt: 3 }}>
+          <WorkflowExecutionMonitor maxExecutions={5} />
+        </Box>
+      )}
     </>
   );
 };
