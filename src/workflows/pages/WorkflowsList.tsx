@@ -22,7 +22,6 @@ import {
   TableSortLabel,
   Checkbox,
   Toolbar,
-  Tooltip,
   LinearProgress,
 } from '@mui/material';
 import {
@@ -33,11 +32,9 @@ import {
   PlayArrow,
   BugReport,
   ContentCopy,
-  Visibility,
-  SelectAll,
-  TestTube,
 } from '@mui/icons-material';
-import { motion } from 'framer-motion';
+import ScienceIcon from '@mui/icons-material/Science';
+import AccountTree from '@mui/icons-material/AccountTree';
 import { PageHeader, LoadingSpinner, Button } from '@/components/core';
 import {
   useWorkflows,
@@ -109,8 +106,8 @@ const WorkflowsList: React.FC = () => {
       setValidationResult(result);
       setSelectedWorkflow(workflow);
       setValidationDialogOpen(true);
-    } catch (error) {
-      // Error handling is done by the mutation
+    } catch {
+      // handled by mutation
     }
     handleMenuClose();
   };
@@ -118,8 +115,8 @@ const WorkflowsList: React.FC = () => {
   const handleDuplicate = async (workflow: Workflow) => {
     try {
       await duplicateWorkflow.mutateAsync(workflow.id);
-    } catch (error) {
-      // Error handling is done by the mutation
+    } catch {
+      // handled by mutation
     }
     handleMenuClose();
   };
@@ -136,8 +133,8 @@ const WorkflowsList: React.FC = () => {
         await deleteWorkflow.mutateAsync(selectedWorkflow.id);
         setDeleteDialogOpen(false);
         setSelectedWorkflow(null);
-      } catch (error) {
-        // Error handling is done by the mutation
+      } catch {
+        // handled by mutation
       }
     }
   };
@@ -152,29 +149,26 @@ const WorkflowsList: React.FC = () => {
     if (selectedWorkflows.length === workflows.length) {
       setSelectedWorkflows([]);
     } else {
-      setSelectedWorkflows(workflows.map(w => w.id));
+      setSelectedWorkflows(workflows.map((w) => w.id));
     }
   };
 
   const handleSelectWorkflow = (workflowId: string) => {
-    setSelectedWorkflows(prev =>
-      prev.includes(workflowId)
-        ? prev.filter(id => id !== workflowId)
-        : [...prev, workflowId]
+    setSelectedWorkflows((prev) =>
+      prev.includes(workflowId) ? prev.filter((id) => id !== workflowId) : [...prev, workflowId]
     );
   };
 
   const handleBulkTest = async () => {
     if (selectedWorkflows.length === 0) return;
-    
     try {
       await bulkTestWorkflows.mutateAsync({
         workflow_ids: selectedWorkflows,
         test_type: 'mock_data',
       });
       setSelectedWorkflows([]);
-    } catch (error) {
-      // Error handling is done by the mutation
+    } catch {
+      // handled by mutation
     }
   };
 
@@ -182,12 +176,8 @@ const WorkflowsList: React.FC = () => {
     return [...workflows].sort((a, b) => {
       const aValue = a[orderBy];
       const bValue = b[orderBy];
-      
-      if (order === 'asc') {
-        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-      } else {
-        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
-      }
+      if (order === 'asc') return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
     });
   }, [workflows, orderBy, order]);
 
@@ -234,18 +224,19 @@ const WorkflowsList: React.FC = () => {
           }}
         >
           <Typography variant="subtitle1" sx={{ flex: 1 }}>
-            {selectedWorkflows.length} workflow{selectedWorkflows.length !== 1 ? 's' : ''} selected
+            {selectedWorkflows.length} workflow
+            {selectedWorkflows.length !== 1 ? 's' : ''} selected
           </Typography>
           <Button
             variant="outlined"
             size="small"
-            startIcon={<TestTube />}
+            startIcon={<ScienceIcon />}
             onClick={handleBulkTest}
             loading={bulkTestWorkflows.isPending}
-            sx={{ 
-              color: 'inherit', 
+            sx={{
+              color: 'inherit',
               borderColor: 'currentColor',
-              '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' }
+              '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' },
             }}
           >
             Bulk Test
@@ -291,8 +282,14 @@ const WorkflowsList: React.FC = () => {
                 <TableRow>
                   <TableCell padding="checkbox">
                     <Checkbox
-                      indeterminate={selectedWorkflows.length > 0 && selectedWorkflows.length < workflows.length}
-                      checked={workflows.length > 0 && selectedWorkflows.length === workflows.length}
+                      indeterminate={
+                        selectedWorkflows.length > 0 &&
+                        selectedWorkflows.length < workflows.length
+                      }
+                      checked={
+                        workflows.length > 0 &&
+                        selectedWorkflows.length === workflows.length
+                      }
                       onChange={handleSelectAll}
                     />
                   </TableCell>
@@ -349,10 +346,9 @@ const WorkflowsList: React.FC = () => {
                         </Typography>
                         {workflow.description && (
                           <Typography variant="caption" color="text.secondary">
-                            {workflow.description.length > 60 
+                            {workflow.description.length > 60
                               ? `${workflow.description.substring(0, 60)}...`
-                              : workflow.description
-                            }
+                              : workflow.description}
                           </Typography>
                         )}
                       </Box>
@@ -366,7 +362,8 @@ const WorkflowsList: React.FC = () => {
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2">
-                        {workflow.actions.length} action{workflow.actions.length !== 1 ? 's' : ''}
+                        {workflow.actions.length} action
+                        {workflow.actions.length !== 1 ? 's' : ''}
                       </Typography>
                     </TableCell>
                     <TableCell>
@@ -386,8 +383,11 @@ const WorkflowsList: React.FC = () => {
                             variant="determinate"
                             value={workflow.success_rate}
                             color={
-                              workflow.success_rate >= 90 ? 'success' :
-                              workflow.success_rate >= 70 ? 'warning' : 'error'
+                              workflow.success_rate >= 90
+                                ? 'success'
+                                : workflow.success_rate >= 70
+                                ? 'warning'
+                                : 'error'
                             }
                             sx={{ width: 60, height: 4, borderRadius: 2 }}
                           />
@@ -419,11 +419,7 @@ const WorkflowsList: React.FC = () => {
       )}
 
       {/* Context Menu */}
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleMenuClose}
-      >
+      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
         <MenuItem onClick={() => handleEdit(menuWorkflow!)}>
           <Edit sx={{ mr: 1 }} />
           Edit
@@ -453,12 +449,11 @@ const WorkflowsList: React.FC = () => {
           setWorkflowFormOpen(false);
           setSelectedWorkflow(null);
         }}
-        onSubmit={async (data) => {
-          // Handle form submission in parent component
+        onSubmit={async () => {
           setWorkflowFormOpen(false);
           setSelectedWorkflow(null);
         }}
-        workflow={selectedWorkflow}
+        workflow={selectedWorkflow || undefined}
       />
 
       {/* Test Dialog */}
@@ -507,7 +502,8 @@ const WorkflowsList: React.FC = () => {
           </Typography>
           {selectedWorkflow && selectedWorkflow.execution_stats.total_executions > 0 && (
             <Alert severity="warning" sx={{ mt: 2 }}>
-              This workflow has {selectedWorkflow.execution_stats.total_executions} execution records that will also be deleted.
+              This workflow has {selectedWorkflow.execution_stats.total_executions} execution records
+              that will also be deleted.
             </Alert>
           )}
         </DialogContent>
