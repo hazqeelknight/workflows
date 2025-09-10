@@ -19,7 +19,6 @@ import {
   MenuItem,
   TextField,
   InputAdornment,
-  Alert,
 } from '@mui/material';
 import {
   Visibility,
@@ -91,6 +90,11 @@ const WorkflowExecutions: React.FC = () => {
     return [...filteredExecutions].sort((a, b) => {
       const aValue = a[orderBy];
       const bValue = b[orderBy];
+      
+      // Handle null/undefined values
+      if (aValue == null && bValue == null) return 0;
+      if (aValue == null) return order === 'asc' ? -1 : 1;
+      if (bValue == null) return order === 'asc' ? 1 : -1;
       
       if (order === 'asc') {
         return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;

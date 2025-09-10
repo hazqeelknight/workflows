@@ -8,7 +8,6 @@ import {
   Step,
   StepLabel,
   StepContent,
-  Divider,
   Alert,
   Chip,
   IconButton,
@@ -21,7 +20,6 @@ import {
 import {
   Add,
   Edit,
-  Delete,
   DragIndicator,
   Email,
   Sms,
@@ -96,7 +94,7 @@ const WorkflowBuilder: React.FC = () => {
     }
   };
 
-  const handleActionSubmit = async (data: WorkflowActionFormData) => {
+  const handleActionSubmit = async () => {
     // This would be handled by the action form component
     setActionFormOpen(false);
     setSelectedAction(null);
