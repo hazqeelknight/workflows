@@ -140,7 +140,7 @@ const WorkflowsOverview: React.FC = () => {
                   <TrendingUp sx={{ mr: 1, verticalAlign: 'middle' }} />
                   Top Performing Workflows
                 </Typography>
-                
+
                 {stats.top_performing_workflows.length === 0 ? (
                   <Typography variant="body2" color="text.secondary">
                     No workflow executions in the last 30 days
@@ -155,14 +155,26 @@ const WorkflowsOverview: React.FC = () => {
                           </Typography>
                           <Chip
                             label={`${workflow.success_rate}%`}
-                            color={workflow.success_rate >= 90 ? 'success' : workflow.success_rate >= 70 ? 'warning' : 'error'}
+                            color={
+                              workflow.success_rate >= 90
+                                ? 'success'
+                                : workflow.success_rate >= 70
+                                ? 'warning'
+                                : 'error'
+                            }
                             size="small"
                           />
                         </Box>
                         <LinearProgress
                           variant="determinate"
                           value={workflow.success_rate}
-                          color={workflow.success_rate >= 90 ? 'success' : workflow.success_rate >= 70 ? 'warning' : 'error'}
+                          color={
+                            workflow.success_rate >= 90
+                              ? 'success'
+                              : workflow.success_rate >= 70
+                              ? 'warning'
+                              : 'error'
+                          }
                           sx={{ height: 6, borderRadius: 3 }}
                         />
                         <Typography variant="caption" color="text.secondary">
@@ -183,7 +195,7 @@ const WorkflowsOverview: React.FC = () => {
                   <Speed sx={{ mr: 1, verticalAlign: 'middle' }} />
                   Problematic Workflows
                 </Typography>
-                
+
                 {stats.problematic_workflows.length === 0 ? (
                   <Alert severity="success">
                     <Typography variant="body2">
@@ -198,11 +210,7 @@ const WorkflowsOverview: React.FC = () => {
                           <Typography variant="body2" sx={{ fontWeight: 500 }}>
                             {workflow.workflow_name}
                           </Typography>
-                          <Chip
-                            label={`${workflow.success_rate}%`}
-                            color="error"
-                            size="small"
-                          />
+                          <Chip label={`${workflow.success_rate}%`} color="error" size="small" />
                         </Box>
                         <LinearProgress
                           variant="determinate"
@@ -215,7 +223,7 @@ const WorkflowsOverview: React.FC = () => {
                         </Typography>
                       </Box>
                     ))}
-                    
+
                     <Button
                       variant="outlined"
                       size="small"
@@ -238,7 +246,7 @@ const WorkflowsOverview: React.FC = () => {
           <Typography variant="h6" gutterBottom>
             Your Workflows
           </Typography>
-          
+
           {workflows.length === 0 ? (
             <Box textAlign="center" py={4}>
               <AccountTree sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
@@ -264,23 +272,24 @@ const WorkflowsOverview: React.FC = () => {
               </Box>
             </Box>
           ) : (
-            <Grid container spacing={2}>
-              {workflows.slice(0, 6).map((workflow, index) => (
-                <Grid item xs={12} md={6} lg={4} key={workflow.id}>
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.1 }}
-                  >
-                    <WorkflowStatsCard
-                      workflow={workflow}
-                      onClick={() => navigate(`/workflows/builder/${workflow.id}`)}
-                    />
-                  </motion.div>
-                </Grid>
-              ))}
-            </Grid>
-              
+            <>
+              <Grid container spacing={2}>
+                {workflows.slice(0, 6).map((workflow, index) => (
+                  <Grid item xs={12} md={6} lg={4} key={workflow.id}>
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                    >
+                      <WorkflowStatsCard
+                        workflow={workflow}
+                        onClick={() => navigate(`/workflows/builder/${workflow.id}`)}
+                      />
+                    </motion.div>
+                  </Grid>
+                ))}
+              </Grid>
+
               {workflows.length > 6 && (
                 <Box textAlign="center" mt={2}>
                   <Button
@@ -291,6 +300,7 @@ const WorkflowsOverview: React.FC = () => {
                   </Button>
                 </Box>
               )}
+            </>
           )}
         </CardContent>
       </Card>
